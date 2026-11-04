@@ -1,7 +1,18 @@
 lexer grammar JavaScriptLexer;
-
-IF : 'if';
-LET : 'let';
-NUMBER : [0-9]+;
-IDENTIFIER : [a-zA-Z]+;
-WS : [ \t\r\n]+ -> skip;
+IF: 'if';
+LET: 'let';
+BIGINT: (DIGITS | '0' [xX] HEX_DIGIT+ | '0' [oO] [0-7]+ | '0' [bB] [01]+) 'n';
+HEX_NUMBER: '0' [xX] HEX_DIGIT+;
+OCTAL_NUMBER: '0' [oO] [0-7]+;
+BINARY_NUMBER: '0' [bB] [01]+;
+FLOAT: DIGITS '.' DIGITS? EXP? | '.' DIGITS EXP? | DIGITS EXP;
+INTEGER: DIGITS;
+INVALID_NUMBER: (DIGITS ('.' DIGITS?)? EXPONENT? | '.' DIGITS EXPONENT?) ID_START ID_PART* | '0' [xXoObB];
+fragment DIGITS: [0-9] ('_'? [0-9])*;
+fragment HEX_DIGIT: [0-9a-fA-F];
+fragment EXP: [eE] [+\-]? DIGITS;
+fragment EXPONENT: [eE] [+\-]? [0-9]+;
+fragment ID_START: [a-zA-Z$];
+fragment ID_PART: [a-zA-Z_$0-9];
+IDENTIFIER: [a-zA-Z]+;
+WS: [ \t\r\n]+ -> skip;
