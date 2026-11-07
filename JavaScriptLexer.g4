@@ -28,4 +28,56 @@ fragment ID_START: [\p{L}_$];
 fragment ID_PART: [\p{L}_$0-9];
 IDENTIFIER: ID_START ID_PART*;
 PRIVATE_NAME: '#' ID_START ID_PART*;
+
+fragment CODE_POINT
+    : '0'* ( HEX_DIGIT HEX_DIGIT? HEX_DIGIT? HEX_DIGIT? HEX_DIGIT?
+           | '10' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT )
+    ;
+fragment ESC_SEQ
+    : '\\'
+      ( ['"\\bfnrtv]                       // \'  \"  \\  \b  \f  \n  \r  \t  \v
+      | 'x' HEX_DIGIT HEX_DIGIT
+      | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+      | 'u{' CODE_POINT '}'
+      | [0-3] [0-7] [0-7]
+      | [0-7] [0-7]?
+      | [89]
+      | '\r' '\n' | '\r' | '\n'
+      | '\u2028' | '\u2029'
+      | ~['"\\bfnrtvxu0-9\r\n\u2028\u2029]
+      )
+    ;
+STRING
+    : '"'  ( ~["\\\r\n] | ESC_SEQ )* '"'
+    | '\'' ( ~['\\\r\n] | ESC_SEQ )* '\''
+    ;
+UNTERMINATED_STRING
+    : '"'  ( ~["\\\r\n] | ESC_SEQ )* '\\'?
+    | '\'' ( ~['\\\r\n] | ESC_SEQ )* '\\'?
+    ;
+INVALID_ESCAPE
+    : '"'  ( ~["\\\r\n] | ESC_SEQ )* '\\' [xu] ( ~["\\\r\n] | '\\' ( '\r\n' | . ) )* '"'?
+    | '\'' ( ~['\\\r\n] | ESC_SEQ )* '\\' [xu] ( ~['\\\r\n] | '\\' ( '\r\n' | . ) )* '\''?
+    ;
+fragment TPL_BODY
+    : ( '\\' .
+      | '$'* TPL_SUBST
+      | ~[`\\$]
+      | '$'+ ~[`\\${]
+      | '$'+ '\\' .
+      )* '$'*
+    ;
+fragment TPL_ANY   : ( '\\' . | TPL_SUBST | ~[`\\] )* ;
+
+fragment TPL_SUBST : '${' TPL_CODE* '}' ;
+fragment TPL_CODE
+    : '`' TPL_BODY '`'
+    | '"'  ( ~["\\\r\n] | '\\' . )* '"'
+    | '\'' ( ~['\\\r\n] | '\\' . )* '\''
+    | '{' TPL_CODE* '}'
+    | ~[{}`"']
+    ;
+TEMPLATE              : '`' TPL_BODY '`' ;
+INVALID_TEMPLATE      : '`' TPL_ANY '`' ;
+UNTERMINATED_TEMPLATE : '`' TPL_ANY '\\'? ;
 WS: [ \t\r\n]+ -> skip;
