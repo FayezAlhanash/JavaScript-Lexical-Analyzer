@@ -4,4 +4,6 @@
 .idea/
 out/
 gen/
+.antlr/
+generated/
 *.iml

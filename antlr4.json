@@ -1,0 +1,7 @@
+{
+  "generation": {
+    "mode": "internal",
+    "language": "Java",
+    "outputDir": "./generated"
+  }
+}
