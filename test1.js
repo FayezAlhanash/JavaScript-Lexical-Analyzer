@@ -26,3 +26,14 @@ line2 \` esc \${ no`
 "unterminated
 'also unterminated
 `unterminated ${ x
+
+
+// Valid templates
+let t1 = `Hello`;
+let t2 = `Hello ${name}`;
+let t3 = `Price: $50`;
+
+// Invalid templates
+let t4 = `Hello ${name;
+let t5 = `Hello ${ {x: 10} `;
+let t6 = `Unfinished template
