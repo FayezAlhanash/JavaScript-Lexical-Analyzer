@@ -1,31 +1,44 @@
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.Token;
-
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.io.IOException;
 import java.util.List;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
-        String input = "let x 42 1_000 3.14 5. .5 1e5 0xFF 0o17 0b101 123n 0xFFn 12px 1e if 123abc 3.12as";
+        Path path = Path.of("test1.js");
+        String input = Files.readString(path);
 
         JavaScriptLexer lexer = new JavaScriptLexer(
                 CharStreams.fromString(input)
         );
+        lexer.removeErrorListeners();
+        LexicalErrorListener errorListener = new LexicalErrorListener();
 
+        lexer.addErrorListener(errorListener);
         List<? extends Token> tokens = lexer.getAllTokens();
 
-        System.out.println("---- Tokens Found ----");
-
+        System.out.println("--- Tokens Found ---");
         for (Token token : tokens) {
 
             String tokenName = lexer.getVocabulary()
                     .getSymbolicName(token.getType());
-
             System.out.println(
                     "Text: " + token.getText()
                             + " -> Type: " + tokenName
+                            + " | Line: " + token.getLine()
+                            + " | Column: " + token.getCharPositionInLine()
             );
+
+
+        }
+        System.out.println("\n--- Lexical Errors: "
+                + errorListener.getErrorCount() + " ---");
+        for (String error : errorListener.getErrors()) {
+            System.out.println(error);
         }
     }
 }
