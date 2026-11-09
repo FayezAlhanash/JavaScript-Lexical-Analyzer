@@ -12,10 +12,9 @@ public class LexerRunner {
 
     public static void run(String fileName) throws IOException {
 
-        // Read input file
         String input = Files.readString(Path.of(fileName));
 
-        // Create Lexer
+
         JavaScriptLexer lexer = new JavaScriptLexer(
                 CharStreams.fromString(input)
         );
@@ -60,8 +59,6 @@ public class LexerRunner {
                 );
             }
         }
-
-        // Add errors captured by Listener
         errors.addAll(errorListener.getErrors());
 
         // Print Errors
@@ -73,13 +70,11 @@ public class LexerRunner {
         }
     }
 
-    // Check if token represents an error
     private static boolean isErrorToken(String name) {
         return name.startsWith("INVALID_")
                 || name.startsWith("UNTERMINATED_");
     }
 
-    // Classify error message
     private static String getErrorMessage(String name, String text) {
 
         switch (name) {
@@ -104,7 +99,6 @@ public class LexerRunner {
         }
     }
 
-    // Make special characters visible
     private static String printable(String text) {
         return text.replace("\r", "\\r")
                 .replace("\n", "\\n")
