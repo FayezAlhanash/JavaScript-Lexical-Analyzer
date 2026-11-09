@@ -37,3 +37,22 @@ let t3 = `Price: $50`;
 let t4 = `Hello ${name;
 let t5 = `Hello ${ {x: 10} `;
 let t6 = `Unfinished template
+// This is a single line comment
+
+let age = 20;
+
+/*
+   This is a
+   multi line comment
+*/
+
+if (age >= 18) {
+    age++;
+    age += 2;
+}
+
+let result = age > 10 ? "Yes" : "No";
+
+let user = person?.name;
+
+let numbers = [...items];
