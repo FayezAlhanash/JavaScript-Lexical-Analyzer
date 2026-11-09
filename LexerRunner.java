@@ -19,7 +19,6 @@ public class LexerRunner {
                 CharStreams.fromString(input)
         );
 
-        // Setup Error Listener
         lexer.removeErrorListeners();
 
         LexicalErrorListener errorListener =
@@ -27,7 +26,6 @@ public class LexerRunner {
 
         lexer.addErrorListener(errorListener);
 
-        // Get Tokens
         List<? extends Token> tokens = lexer.getAllTokens();
 
         List<String> errors = new ArrayList<>();
@@ -60,8 +58,6 @@ public class LexerRunner {
             }
         }
         errors.addAll(errorListener.getErrors());
-
-        // Print Errors
         System.out.println("\n--- Lexical Errors: "
                 + errors.size() + " ---");
 
