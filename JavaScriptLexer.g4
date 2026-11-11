@@ -167,6 +167,7 @@ TPL_RESUME
 
 RBRACE : '}' { if (braceDepth > 0) braceDepth--; } -> type(PUNCTUATION) ;
 
+
 TPL_START : '`' -> more, pushMode(TPL_MODE) ;
 
 WS: [ \t\r\n]+ -> skip;
