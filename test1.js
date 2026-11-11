@@ -1,58 +1,36 @@
-let x 42
-1_000 3.14 5. .5 1e5
-0xFF 0o17 0b101 123n 0xFFn
-if true false null
-'single' "double" 'It\'s a "beautiful" day' "say \"hi\""
-"" '' 'a\\'
+// ===== VALID: strings =====
+'single' "double" '' ""
+'It\'s a "q" day' "say \"hi\"" 'a\\'
+"\n \t \r \b \f \v \0"
+"\x41 \u0041 \u{1F600} \u{41} \u{10FFFF}"
+"\101 \377 \8 \z"
+"مرحبا بالعالم"
+"http://example.com" 'not // a comment' "not /* a comment */"
 "abc\
 def"
 'ab\
 cd'
-"\n\t\\ \x41 \u0041 \u{1F600} \101 \z \0 \377 \8"
-"مرحبا بالعالم"
-"http://example.com"
-`plain` `x ${y} z` `a ${ {k:1}.k } b`
+
+// ===== VALID: templates =====
+`plain`
+``
+`$5 and cost$`
+`$${total}`
+`x ${y} z`
+`a ${ {k:1}.k } b`
 `outer ${ c ? `inner ${n}` : "}" } end`
 `line1
 line2 \` esc \${ no`
-`price: $5 and $${total}`
-``
-12px 1e 123abc 3.12as
-"ab\xZZ cd"
-'ab\u12G4'
-"x\u{110000}"
-@
-"two \xZ bad \u00 escapes"
+`${a}${b}`
+
+// ===== INVALID: strings (each one is a lexical error) =====
+"bad \xZZ hex"
+'bad \u12G4 unicode'
+"too big \u{110000}"
+"empty \u{}"
+"two \xZ and \u00 in one"
 "unterminated
 'also unterminated
-`unterminated ${ x
 
-
-// Valid templates
-let t1 = `Hello`;
-let t2 = `Hello ${name}`;
-let t3 = `Price: $50`;
-
-// Invalid templates
-let t4 = `Hello ${name;
-let t5 = `Hello ${ {x: 10} `;
-let t6 = `Unfinished template
-// This is a single line comment
-
-let age = 20;
-
-/*
-   This is a
-   multi line comment
-*/
-
-if (age >= 18) {
-    age++;
-    age += 2;
-}
-
-let result = age > 10 ? "Yes" : "No";
-
-let user = person?.name;
-
-let numbers = [...items];
+// ===== INVALID: template (an unclosed ${ swallows the rest, keep it LAST) =====
+let msg = `Hello ${ name;

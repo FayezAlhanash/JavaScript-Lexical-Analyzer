@@ -1,4 +1,33 @@
 lexer grammar JavaScriptLexer;
+
+@members {
+    private int braceDepth = 0;
+    private java.util.ArrayDeque<Integer> tplStack = new java.util.ArrayDeque<>();
+
+    private java.util.ArrayDeque<int[]> tplPos = new java.util.ArrayDeque<>();
+
+    @Override
+    public void reset() { super.reset(); braceDepth = 0; tplStack.clear(); tplPos.clear(); }
+
+    @Override
+    public Token nextToken() {
+        Token t = super.nextToken();
+        if (t.getType() == Token.EOF && !tplPos.isEmpty()) {
+            int[] p = tplPos.peek();
+            tplStack.clear(); tplPos.clear();
+            CommonToken e = new CommonToken(_tokenFactorySourcePair, UNTERMINATED_TEMPLATE,
+                                            Token.DEFAULT_CHANNEL, _input.index(), _input.index());
+            e.setLine(p[0]);
+            e.setCharPositionInLine(p[1]);
+            e.setText("${");
+            return e;
+        }
+        return t;
+    }
+}
+
+tokens { TEMPLATE, UNTERMINATED_TEMPLATE }
+
 IF: 'if';
 LET: 'let';
 KEYWORD
@@ -35,7 +64,7 @@ fragment CODE_POINT
     ;
 fragment ESC_SEQ
     : '\\'
-      ( ['"\\bfnrtv]                       // \'  \"  \\  \b  \f  \n  \r  \t  \v
+      ( ['"\\bfnrtv]
       | 'x' HEX_DIGIT HEX_DIGIT
       | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
       | 'u{' CODE_POINT '}'
@@ -59,27 +88,7 @@ INVALID_ESCAPE
     : '"'  ( ~["\\\r\n] | ESC_SEQ )* '\\' [xu] ( ~["\\\r\n] | '\\' ( '\r\n' | . ) )* '"'?
     | '\'' ( ~['\\\r\n] | ESC_SEQ )* '\\' [xu] ( ~['\\\r\n] | '\\' ( '\r\n' | . ) )* '\''?
     ;
-fragment TPL_BODY
-    : ( '\\' .
-      | '$'* TPL_SUBST
-      | ~[`\\$]
-      | '$'+ ~[`\\${]
-      | '$'+ '\\' .
-      )* '$'*
-    ;
-fragment TPL_ANY   : ( '\\' . | TPL_SUBST | ~[`\\] )* ;
 
-fragment TPL_SUBST : '${' TPL_CODE* '}' ;
-fragment TPL_CODE
-    : '`' TPL_BODY '`'
-    | '"'  ( ~["\\\r\n] | '\\' . )* '"'
-    | '\'' ( ~['\\\r\n] | '\\' . )* '\''
-    | '{' TPL_CODE* '}'
-    | ~[{}`"']
-    ;
-TEMPLATE              : '`' TPL_BODY '`' ;
-INVALID_TEMPLATE      : '`' TPL_ANY '`' ;
-UNTERMINATED_TEMPLATE : '`' TPL_ANY '\\'? ;
 LINE_COMMENT
     : '//' ~[\r\n]* -> skip
     ;
@@ -88,75 +97,88 @@ BLOCK_COMMENT
     : '/*' .*? '*/' -> skip
     ;
 
-UNTERMINATED_BLOCK_COMMENT
-    : '/*' ( ~[*] | '*'+ ~[/] )* '*'* EOF
+OPERATOR
+    : '>>>='
+    | '**='
+    | '==='
+    | '!=='
+    | '>>>'
+    | '<<='
+    | '>>='
+    | '&&='
+    | '||='
+    | '??='
+    | '...'
+    | '=='
+    | '!='
+    | '<='
+    | '>='
+    | '++'
+    | '--'
+    | '&&'
+    | '||'
+    | '??'
+    | '?.'
+    | '?'
+    | '<<'
+    | '>>'
+    | '**'
+    | '+='
+    | '-='
+    | '*='
+    | '/='
+    | '%='
+    | '&='
+    | '|='
+    | '^='
+    | '=>'
+    | '+'
+    | '-'
+    | '*'
+    | '/'
+    | '%'
+    | '='
+    | '>'
+    | '<'
+    | '!'
+    | '~'
+    | '&'
+    | '|'
+    | '^'
     ;
 
-UNSIGNED_RIGHT_SHIFT_ASSIGN : '>>>=';
-EXPONENTIATION_ASSIGN       : '**=';
-LEFT_SHIFT_ASSIGN           : '<<=';
-RIGHT_SHIFT_ASSIGN          : '>>=';
-LOGICAL_AND_ASSIGN          : '&&=';
-LOGICAL_OR_ASSIGN           : '||=';
-NULLISH_ASSIGN              : '??=';
-ADD_ASSIGN                  : '+=';
-SUBTRACT_ASSIGN             : '-=';
-MULTIPLY_ASSIGN             : '*=';
-DIVIDE_ASSIGN               : '/=';
-MODULO_ASSIGN               : '%=';
-BITWISE_AND_ASSIGN          : '&=';
-BITWISE_OR_ASSIGN           : '|=';
-BITWISE_XOR_ASSIGN          : '^=';
+PUNCTUATION
+    : '('
+    | ')'
+    | '['
+    | ']'
+    | ';'
+    | ','
+    | '.'
+    | ':'
+    ;
 
-STRICT_EQUAL     : '===';
-STRICT_NOT_EQUAL : '!==';
-EQUAL            : '==';
-NOT_EQUAL        : '!=';
-LESS_EQUAL       : '<=';
-GREATER_EQUAL    : '>=';
+LBRACE : '{' { braceDepth++; } -> type(PUNCTUATION) ;
 
-INCREMENT : '++';
-DECREMENT : '--';
+TPL_RESUME
+    : { !tplStack.isEmpty() && braceDepth == tplStack.peek() }? '}'
+      { tplStack.pop(); tplPos.pop(); } -> more, pushMode(TPL_MODE)
+    ;
 
-LOGICAL_AND          : '&&';
-LOGICAL_OR           : '||';
-NULLISH_COALESCING   : '??';
-LOGICAL_NOT          : '!';
+RBRACE : '}' { if (braceDepth > 0) braceDepth--; } -> type(PUNCTUATION) ;
 
-UNSIGNED_RIGHT_SHIFT : '>>>';
-LEFT_SHIFT           : '<<';
-RIGHT_SHIFT          : '>>';
-BITWISE_AND          : '&';
-BITWISE_OR           : '|';
-BITWISE_XOR          : '^';
-BITWISE_NOT          : '~';
 
-EXPONENTIATION : '**';
-PLUS           : '+';
-MINUS          : '-';
-MULTIPLY       : '*';
-DIVIDE         : '/';
-MODULO         : '%';
+TPL_START : '`' -> more, pushMode(TPL_MODE) ;
 
-OPTIONAL_CHAINING : '?.';
-QUESTION          : '?';
-SPREAD             : '...';
-ARROW              : '=>';
-ASSIGN             : '=';
-GREATER_THAN       : '>';
-LESS_THAN          : '<';
-
- LEFT_PAREN  : '(';
- RIGHT_PAREN : ')';
-
- LEFT_BRACE  : '{';
- RIGHT_BRACE : '}';
-
- LEFT_BRACKET  : '[';
- RIGHT_BRACKET : ']';
-
- SEMICOLON : ';';
- COMMA     : ',';
- DOT       : '.';
- COLON     : ':';
 WS: [ \t\r\n]+ -> skip;
+
+mode TPL_MODE;
+
+TPL_ESC   : '\\' . -> more ;
+TPL_SUBST : '${'
+            { tplStack.push(braceDepth);
+              tplPos.push(new int[]{_tokenStartLine, _tokenStartCharPositionInLine}); }
+            -> type(TEMPLATE), popMode ;
+TPL_END   : '`' -> type(TEMPLATE), popMode ;
+TPL_EOF   : EOF -> type(UNTERMINATED_TEMPLATE), popMode ;
+TPL_CHAR  : .   -> more ;
