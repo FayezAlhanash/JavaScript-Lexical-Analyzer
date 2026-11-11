@@ -88,66 +88,72 @@ BLOCK_COMMENT
     : '/*' .*? '*/' -> skip
     ;
 
-OPERATOR
-    : '>>>='
-    | '**='
-    | '==='
-    | '!=='
-    | '>>>'
-    | '<<='
-    | '>>='
-    | '&&='
-    | '||='
-    | '??='
-    | '...'
-    | '=='
-    | '!='
-    | '<='
-    | '>='
-    | '++'
-    | '--'
-    | '&&'
-    | '||'
-    | '??'
-    | '?.'
-    | '?'
-    | '<<'
-    | '>>'
-    | '**'
-    | '+='
-    | '-='
-    | '*='
-    | '/='
-    | '%='
-    | '&='
-    | '|='
-    | '^='
-    | '=>'
-    | '+'
-    | '-'
-    | '*'
-    | '/'
-    | '%'
-    | '='
-    | '>'
-    | '<'
-    | '!'
-    | '~'
-    | '&'
-    | '|'
-    | '^'
-    ;
 
- PUNCTUATION
-        : '('
-        | ')'
-        | '{'
-        | '}'
-        | '['
-        | ']'
-        | ';'
-        | ','
-        | '.'
-        | ':'
-        ;
+UNSIGNED_RIGHT_SHIFT_ASSIGN : '>>>=';
+EXPONENTIATION_ASSIGN       : '**=';
+LEFT_SHIFT_ASSIGN           : '<<=';
+RIGHT_SHIFT_ASSIGN          : '>>=';
+LOGICAL_AND_ASSIGN          : '&&=';
+LOGICAL_OR_ASSIGN           : '||=';
+NULLISH_ASSIGN              : '??=';
+ADD_ASSIGN                  : '+=';
+SUBTRACT_ASSIGN             : '-=';
+MULTIPLY_ASSIGN             : '*=';
+DIVIDE_ASSIGN               : '/=';
+MODULO_ASSIGN               : '%=';
+BITWISE_AND_ASSIGN          : '&=';
+BITWISE_OR_ASSIGN           : '|=';
+BITWISE_XOR_ASSIGN          : '^=';
+
+STRICT_EQUAL     : '===';
+STRICT_NOT_EQUAL : '!==';
+EQUAL            : '==';
+NOT_EQUAL        : '!=';
+LESS_EQUAL       : '<=';
+GREATER_EQUAL    : '>=';
+
+INCREMENT : '++';
+DECREMENT : '--';
+
+LOGICAL_AND          : '&&';
+LOGICAL_OR           : '||';
+NULLISH_COALESCING   : '??';
+LOGICAL_NOT          : '!';
+
+UNSIGNED_RIGHT_SHIFT : '>>>';
+LEFT_SHIFT           : '<<';
+RIGHT_SHIFT          : '>>';
+BITWISE_AND          : '&';
+BITWISE_OR           : '|';
+BITWISE_XOR          : '^';
+BITWISE_NOT          : '~';
+
+EXPONENTIATION : '**';
+PLUS           : '+';
+MINUS          : '-';
+MULTIPLY       : '*';
+DIVIDE         : '/';
+MODULO         : '%';
+
+OPTIONAL_CHAINING : '?.';
+QUESTION          : '?';
+SPREAD             : '...';
+ARROW              : '=>';
+ASSIGN             : '=';
+GREATER_THAN       : '>';
+LESS_THAN          : '<';
+
+ LEFT_PAREN  : '(';
+ RIGHT_PAREN : ')';
+
+ LEFT_BRACE  : '{';
+ RIGHT_BRACE : '}';
+
+ LEFT_BRACKET  : '[';
+ RIGHT_BRACKET : ']';
+
+ SEMICOLON : ';';
+ COMMA     : ',';
+ DOT       : '.';
+ COLON     : ':';
 WS: [ \t\r\n]+ -> skip;
