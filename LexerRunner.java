@@ -44,7 +44,7 @@ public class LexerRunner {
                         "Line: " + token.getLine()
                                 + ", Column: " + (token.getCharPositionInLine() + 1)
                                 + " | " + tokenName
-                                + " | " + getErrorMessage(tokenName, token.getText())
+                                + " | " + printable(token.getText())
                 );
 
             } else {
@@ -71,29 +71,7 @@ public class LexerRunner {
                 || name.startsWith("UNTERMINATED_");
     }
 
-    private static String getErrorMessage(String name, String text) {
 
-        switch (name) {
-
-            case "UNTERMINATED_STRING":
-                return "Unterminated string";
-
-            case "INVALID_ESCAPE":
-                return "Invalid escape sequence: " + printable(text);
-
-            case "INVALID_TEMPLATE":
-                return "Invalid template: " + printable(text);
-
-            case "UNTERMINATED_TEMPLATE":
-                return "Unterminated template";
-
-            case "INVALID_NUMBER":
-                return "Invalid number: " + printable(text);
-
-            default:
-                return "Invalid or unexpected token: " + printable(text);
-        }
-    }
 
     private static String printable(String text) {
         return text.replace("\r", "\\r")
