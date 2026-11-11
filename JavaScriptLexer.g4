@@ -30,16 +30,57 @@ tokens { TEMPLATE, UNTERMINATED_TEMPLATE }
 
 IF: 'if';
 LET: 'let';
-KEYWORD
-    : 'break' | 'case' | 'catch' | 'class' | 'const' | 'continue'
-    | 'debugger' | 'default' | 'delete' | 'do' | 'else' | 'enum'
-    | 'export' | 'extends' | 'finally' | 'for' | 'function'
-    | 'import' | 'in' | 'instanceof' | 'new' | 'return' | 'super'
-    | 'switch' | 'this' | 'throw' | 'try' | 'typeof' | 'var' | 'void'
-    | 'while' | 'with' | 'yield' | 'static' | 'await'
-    | 'implements' | 'interface' | 'package' | 'private'
-    | 'protected' | 'public'
-    ;
+BREAK: 'break';
+CASE: 'case';
+CATCH: 'catch';
+CLASS: 'class';
+CONST: 'const';
+CONTINUE: 'continue';
+DEBUGGER: 'debugger';
+DEFAULT: 'default';
+DELETE: 'delete';
+DO: 'do';
+ELSE: 'else';
+ENUM: 'enum';
+EXPORT: 'export';
+EXTENDS: 'extends';
+FINALLY: 'finally';
+FOR: 'for';
+FUNCTION: 'function';
+IMPORT: 'import';
+IN: 'in';
+INSTANCEOF: 'instanceof';
+NEW: 'new';
+RETURN: 'return';
+SUPER: 'super';
+SWITCH: 'switch';
+THIS: 'this';
+THROW: 'throw';
+TRY: 'try';
+TYPEOF: 'typeof';
+VAR: 'var';
+VOID: 'void';
+WHILE: 'while';
+WITH: 'with';
+YIELD: 'yield';
+STATIC: 'static';
+AWAIT: 'await';
+IMPLEMENTS: 'implements';
+INTERFACE: 'interface';
+PACKAGE: 'package';
+PRIVATE: 'private';
+PROTECTED: 'protected';
+PUBLIC: 'public';
+// KEYWORD
+//     : 'break' | 'case' | 'catch' | 'class' | 'const' | 'continue'
+//     | 'debugger' | 'default' | 'delete' | 'do' | 'else' | 'enum'
+//     | 'export' | 'extends' | 'finally' | 'for' | 'function'
+//     | 'import' | 'in' | 'instanceof' | 'new' | 'return' | 'super'
+//     | 'switch' | 'this' | 'throw' | 'try' | 'typeof' | 'var' | 'void'
+//     | 'while' | 'with' | 'yield' | 'static' | 'await'
+//     | 'implements' | 'interface' | 'package' | 'private'
+//     | 'protected' | 'public'
+//     ;
 BOOLEAN      : 'true' | 'false' ;
 NULL_LITERAL : 'null' ;
 BIGINT: (DIGITS | '0' [xX] HEX_DIGIT+ | '0' [oO] [0-7]+ | '0' [bB] [01]+) 'n';
