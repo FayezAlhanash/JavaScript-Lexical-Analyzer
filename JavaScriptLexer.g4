@@ -96,6 +96,9 @@ LINE_COMMENT
 BLOCK_COMMENT
     : '/*' .*? '*/' -> skip
     ;
+UNTERMINATED_BLOCK_COMMENT
+    : '/*' ( ~[*] | '*'+ ~[/] )* '*'* EOF
+    ;
 
 OPERATOR
     : '>>>='
