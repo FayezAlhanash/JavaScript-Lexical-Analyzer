@@ -1,31 +1,5 @@
 lexer grammar JavaScriptLexer;
 
-@members {
-    private int braceDepth = 0;
-    private java.util.ArrayDeque<Integer> tplStack = new java.util.ArrayDeque<>();
-
-    private java.util.ArrayDeque<int[]> tplPos = new java.util.ArrayDeque<>();
-
-    @Override
-    public void reset() { super.reset(); braceDepth = 0; tplStack.clear(); tplPos.clear(); }
-
-    @Override
-    public Token nextToken() {
-        Token t = super.nextToken();
-        if (t.getType() == Token.EOF && !tplPos.isEmpty()) {
-            int[] p = tplPos.peek();
-            tplStack.clear(); tplPos.clear();
-            CommonToken e = new CommonToken(_tokenFactorySourcePair, UNTERMINATED_TEMPLATE,
-                                            Token.DEFAULT_CHANNEL, _input.index(), _input.index());
-            e.setLine(p[0]);
-            e.setCharPositionInLine(p[1]);
-            e.setText("${");
-            return e;
-        }
-        return t;
-    }
-}
-
 tokens { TEMPLATE, UNTERMINATED_TEMPLATE }
 
 IF: 'if';
@@ -161,14 +135,9 @@ PUNCTUATION
     | ':'
     ;
 
-LBRACE : '{' { braceDepth++; } -> type(PUNCTUATION) ;
 
-TPL_RESUME
-    : { !tplStack.isEmpty() && braceDepth == tplStack.peek() }? '}'
-      { tplStack.pop(); tplPos.pop(); } -> more, pushMode(TPL_MODE)
-    ;
-
-RBRACE : '}' { if (braceDepth > 0) braceDepth--; } -> type(PUNCTUATION) ;
+LBRACE : '{' -> type(PUNCTUATION), pushMode(DEFAULT_MODE) ;
+RBRACE : '}' { if (!_modeStack.isEmpty()) popMode(); } -> type(PUNCTUATION) ;
 
 
 TPL_START : '`' -> more, pushMode(TPL_MODE) ;
@@ -178,10 +147,7 @@ WS: [ \t\r\n]+ -> skip;
 mode TPL_MODE;
 
 TPL_ESC   : '\\' . -> more ;
-TPL_SUBST : '${'
-            { tplStack.push(braceDepth);
-              tplPos.push(new int[]{_tokenStartLine, _tokenStartCharPositionInLine}); }
-            -> type(TEMPLATE), popMode ;
-TPL_END   : '`' -> type(TEMPLATE), popMode ;
-TPL_EOF   : EOF -> type(UNTERMINATED_TEMPLATE), popMode ;
-TPL_CHAR  : .   -> more ;
+TPL_SUBST : '${'   -> type(TEMPLATE), pushMode(DEFAULT_MODE) ;
+TPL_END   : '`'    -> type(TEMPLATE), popMode ;
+TPL_EOF   : EOF    -> type(UNTERMINATED_TEMPLATE), popMode ;
+TPL_CHAR  : .      -> more ;
