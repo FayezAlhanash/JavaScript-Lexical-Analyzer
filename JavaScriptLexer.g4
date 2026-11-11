@@ -1,4 +1,33 @@
 lexer grammar JavaScriptLexer;
+
+@members {
+    private int braceDepth = 0;
+    private java.util.ArrayDeque<Integer> tplStack = new java.util.ArrayDeque<>();
+
+    private java.util.ArrayDeque<int[]> tplPos = new java.util.ArrayDeque<>();
+
+    @Override
+    public void reset() { super.reset(); braceDepth = 0; tplStack.clear(); tplPos.clear(); }
+
+    @Override
+    public Token nextToken() {
+        Token t = super.nextToken();
+        if (t.getType() == Token.EOF && !tplPos.isEmpty()) {
+            int[] p = tplPos.peek();
+            tplStack.clear(); tplPos.clear();
+            CommonToken e = new CommonToken(_tokenFactorySourcePair, UNTERMINATED_TEMPLATE,
+                                            Token.DEFAULT_CHANNEL, _input.index(), _input.index());
+            e.setLine(p[0]);
+            e.setCharPositionInLine(p[1]);
+            e.setText("${");
+            return e;
+        }
+        return t;
+    }
+}
+
+tokens { TEMPLATE, UNTERMINATED_TEMPLATE }
+
 IF: 'if';
 LET: 'let';
 KEYWORD
@@ -35,7 +64,7 @@ fragment CODE_POINT
     ;
 fragment ESC_SEQ
     : '\\'
-      ( ['"\\bfnrtv]                       // \'  \"  \\  \b  \f  \n  \r  \t  \v
+      ( ['"\\bfnrtv]
       | 'x' HEX_DIGIT HEX_DIGIT
       | 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
       | 'u{' CODE_POINT '}'
@@ -59,27 +88,7 @@ INVALID_ESCAPE
     : '"'  ( ~["\\\r\n] | ESC_SEQ )* '\\' [xu] ( ~["\\\r\n] | '\\' ( '\r\n' | . ) )* '"'?
     | '\'' ( ~['\\\r\n] | ESC_SEQ )* '\\' [xu] ( ~['\\\r\n] | '\\' ( '\r\n' | . ) )* '\''?
     ;
-fragment TPL_BODY
-    : ( '\\' .
-      | '$'* TPL_SUBST
-      | ~[`\\$]
-      | '$'+ ~[`\\${]
-      | '$'+ '\\' .
-      )* '$'*
-    ;
-fragment TPL_ANY   : ( '\\' . | TPL_SUBST | ~[`\\] )* ;
 
-fragment TPL_SUBST : '${' TPL_CODE* '}' ;
-fragment TPL_CODE
-    : '`' TPL_BODY '`'
-    | '"'  ( ~["\\\r\n] | '\\' . )* '"'
-    | '\'' ( ~['\\\r\n] | '\\' . )* '\''
-    | '{' TPL_CODE* '}'
-    | ~[{}`"']
-    ;
-TEMPLATE              : '`' TPL_BODY '`' ;
-INVALID_TEMPLATE      : '`' TPL_ANY '`' ;
-UNTERMINATED_TEMPLATE : '`' TPL_ANY '\\'? ;
 LINE_COMMENT
     : '//' ~[\r\n]* -> skip
     ;
@@ -138,16 +147,37 @@ OPERATOR
     | '^'
     ;
 
- PUNCTUATION
-        : '('
-        | ')'
-        | '{'
-        | '}'
-        | '['
-        | ']'
-        | ';'
-        | ','
-        | '.'
-        | ':'
-        ;
+PUNCTUATION
+    : '('
+    | ')'
+    | '['
+    | ']'
+    | ';'
+    | ','
+    | '.'
+    | ':'
+    ;
+
+LBRACE : '{' { braceDepth++; } -> type(PUNCTUATION) ;
+
+TPL_RESUME
+    : { !tplStack.isEmpty() && braceDepth == tplStack.peek() }? '}'
+      { tplStack.pop(); tplPos.pop(); } -> more, pushMode(TPL_MODE)
+    ;
+
+RBRACE : '}' { if (braceDepth > 0) braceDepth--; } -> type(PUNCTUATION) ;
+
+TPL_START : '`' -> more, pushMode(TPL_MODE) ;
+
 WS: [ \t\r\n]+ -> skip;
+
+mode TPL_MODE;
+
+TPL_ESC   : '\\' . -> more ;
+TPL_SUBST : '${'
+            { tplStack.push(braceDepth);
+              tplPos.push(new int[]{_tokenStartLine, _tokenStartCharPositionInLine}); }
+            -> type(TEMPLATE), popMode ;
+TPL_END   : '`' -> type(TEMPLATE), popMode ;
+TPL_EOF   : EOF -> type(UNTERMINATED_TEMPLATE), popMode ;
+TPL_CHAR  : .   -> more ;
