@@ -88,6 +88,9 @@ BLOCK_COMMENT
     : '/*' .*? '*/' -> skip
     ;
 
+UNTERMINATED_BLOCK_COMMENT
+    : '/*' ( ~[*] | '*'+ ~[/] )* '*'* EOF
+    ;
 
 UNSIGNED_RIGHT_SHIFT_ASSIGN : '>>>=';
 EXPONENTIATION_ASSIGN       : '**=';
