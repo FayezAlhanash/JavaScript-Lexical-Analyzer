@@ -176,19 +176,43 @@ PUNCTUATION
     | ':'
     ;
 
+LBRACE
+    : '{' -> type(PUNCTUATION), pushMode(DEFAULT_MODE)
+    ;
+RBRACE
+    : '}'
+      {
+          if (!_modeStack.isEmpty()) {
+              popMode();
+          }
+      }
+      -> type(PUNCTUATION)
+    ;
 
-LBRACE : '{' -> type(PUNCTUATION), pushMode(DEFAULT_MODE) ;
-RBRACE : '}' { if (!_modeStack.isEmpty()) popMode(); } -> type(PUNCTUATION) ;
+TPL_START
+    : '`' -> more, pushMode(TPL_MODE)
+    ;
 
-
-TPL_START : '`' -> more, pushMode(TPL_MODE) ;
-
-WS: [ \t\r\n]+ -> skip;
+WS
+    : [ \t\r\n]+ -> skip
+    ;
 
 mode TPL_MODE;
+TPL_EOF
+    : EOF -> type(UNTERMINATED_TEMPLATE), popMode
+    ;
+TPL_ESC
+    : '\\' . -> more
+    ;
 
-TPL_ESC   : '\\' . -> more ;
-TPL_SUBST : '${'   -> type(TEMPLATE), pushMode(DEFAULT_MODE) ;
-TPL_END   : '`'    -> type(TEMPLATE), popMode ;
-TPL_EOF   : EOF    -> type(UNTERMINATED_TEMPLATE), popMode ;
-TPL_CHAR  : .      -> more ;
+TPL_SUBST
+    : '${' -> type(TEMPLATE), pushMode(DEFAULT_MODE)
+    ;
+
+TPL_END
+    : '`' -> type(TEMPLATE), popMode
+    ;
+
+TPL_CHAR
+    : . -> more
+    ;
