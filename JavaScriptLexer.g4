@@ -1,7 +1,6 @@
 lexer grammar JavaScriptLexer;
 
-tokens { TEMPLATE, UNTERMINATED_TEMPLATE }
-
+tokens { TEMPLATE, UNTERMINATED_TEMPLATE, UNTERMINATED_BLOCK_COMMENT }
 IF: 'if';
 LET: 'let';
 BREAK: 'break';
@@ -108,11 +107,8 @@ LINE_COMMENT
     : '//' ~[\r\n]* -> skip
     ;
 
-BLOCK_COMMENT
-    : '/*' .*? '*/' -> skip
-    ;
-UNTERMINATED_BLOCK_COMMENT
-    : '/*' ( ~[*] | '*'+ ~[/] )* '*'* EOF
+BLOCK_COMMENT_START
+    : '/*' -> more, pushMode(COMMENT_MODE)
     ;
 
 UNSIGNED_RIGHT_SHIFT_ASSIGN : '>>>=';
@@ -219,4 +215,17 @@ TPL_END
 
 TPL_CHAR
     : . -> more
+    ;
+mode COMMENT_MODE;
+
+BLOCK_COMMENT_END
+    : '*/' -> skip, popMode
+    ;
+
+COMMENT_CHAR
+    : . -> more
+    ;
+
+COMMENT_EOF
+    : EOF -> type(UNTERMINATED_BLOCK_COMMENT), popMode
     ;
