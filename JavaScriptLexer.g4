@@ -1,6 +1,26 @@
 lexer grammar JavaScriptLexer;
 
-tokens { TEMPLATE, UNTERMINATED_TEMPLATE, UNTERMINATED_BLOCK_COMMENT }
+@members {
+    private final java.util.ArrayDeque<int[]> openTemplates = new java.util.ArrayDeque<>();
+
+    @Override
+    public Token emitEOF() {
+        if (!openTemplates.isEmpty()) {
+            int[] start = openTemplates.peekLast();
+
+            getErrorListenerDispatch().syntaxError(
+                this, null, start[0], start[1],
+                "Invalid or unexpected token", null
+            );
+
+            openTemplates.clear();
+        }
+
+        return super.emitEOF();
+    }
+}
+
+tokens {TEMPLATE,UNTERMINATED_TEMPLATE, UNTERMINATED_BLOCK_COMMENT}
 IF: 'if';
 LET: 'let';
 BREAK: 'break';
@@ -188,15 +208,20 @@ RBRACE
       }
       -> type(PUNCTUATION)
     ;
-
 TPL_START
-    : '`' -> more, pushMode(TPL_MODE)
-    ;
+    : '`'
+      {
+          openTemplates.push(new int[] {
+              _tokenStartLine,
+              _tokenStartCharPositionInLine
+          });
+      }
+      -> more, pushMode(TPL_MODE)
+;
 
 WS
     : [ \t\r\n]+ -> skip
     ;
-
 mode TPL_MODE;
 TPL_EOF
     : EOF -> type(UNTERMINATED_TEMPLATE), popMode
@@ -210,8 +235,14 @@ TPL_SUBST
     ;
 
 TPL_END
-    : '`' -> type(TEMPLATE), popMode
-    ;
+    : '`'
+      {
+          if (!openTemplates.isEmpty()) {
+              openTemplates.pop();
+          }
+      }
+      -> type(TEMPLATE), popMode
+;
 
 TPL_CHAR
     : . -> more

@@ -1,1 +1,2 @@
-let user = `Hello ${ { name: "Ali" } }`;
+
+let b = `Hello ${name;

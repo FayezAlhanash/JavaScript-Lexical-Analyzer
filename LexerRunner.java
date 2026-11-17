@@ -27,8 +27,9 @@ public class LexerRunner {
         lexer.addErrorListener(errorListener);
 
         List<? extends Token> tokens = lexer.getAllTokens();
-
-        List<String> errors = new ArrayList<>();
+        System.out.println(
+                java.util.Arrays.toString(lexer.getModeNames())
+        );        List<String> errors = new ArrayList<>();
 
         System.out.println("--- Valid Tokens ---");
 
