@@ -185,19 +185,19 @@ ASSIGN             : '=';
 GREATER_THAN       : '>';
 LESS_THAN          : '<';
 
-PUNCTUATION
-    : '('
-    | ')'
-    | '['
-    | ']'
-    | ';'
-    | ','
-    | '.'
-    | ':'
-    ;
+LPAREN      : '(';
+RPAREN      : ')';
+
+LBRACKET    : '[';
+RBRACKET    : ']';
+
+SEMICOLON   : ';';
+COMMA       : ',';
+DOT         : '.';
+COLON       : ':';
 
 LBRACE
-    : '{' -> type(PUNCTUATION), pushMode(DEFAULT_MODE)
+    : '{' -> pushMode(DEFAULT_MODE)
     ;
 RBRACE
     : '}'
@@ -206,7 +206,6 @@ RBRACE
               popMode();
           }
       }
-      -> type(PUNCTUATION)
     ;
 TPL_START
     : '`'
